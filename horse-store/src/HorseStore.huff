@@ -1,0 +1,56 @@
+
+/* Interfaces */
+#define function updateHorseNumber(uint256) nonpayable returns()
+#define function readNumberOfHorses() view returns (uint256)
+
+#define constant NUMBER_OF_HORSES_STORAGE_SLOT = FREE_STORAGE_POINTER()
+
+#define macro MAIN() = takes(0) returns(0){
+  0x00     // [0]
+  calldataload  //[calldatafirst32bytes]
+  0xe0          //[224,calldatafirst32bytes]
+  shr           //[function selector(0xcdfead2e)]
+
+  //c function dispatcher setup
+  //Idea is that if the function selector from the calldata matches one of the function selectors from the HorseStore contract, then we want to go to that location in the contract and execute that function.
+  dup1          //[function selector(0xcdfead2e), function selector(0xcdfead2e)]
+ __FUNC_SIG(updateHorseNumber)   //[0xcdfead2e, function selector(0xcdfead2e), function selector(0xcdfead2e)]
+  eq           //[1, function selector(0xcdfead2e)]
+
+  updateJump   //[getsprogramcounterfromdefinedmacro, 1, function selector(0xcdfead2e)]
+  jumpi        //[function selector(0xcdfead2e)]
+
+ __FUNC_SIG(readNumberOfHorses)   //[function selector(0x26c017), function selector(0xcdfead2e)]
+  eq          //[0]
+  readJump    //[getsprogramcounterfromdefinedmacro, 0]
+  jumpi       //[]
+  0x00        //[0]
+  0x00        //[0,0]
+  revert      //[]
+
+  updateJump:
+  SET_NUMBER_OF_HORSES()
+  readJump:
+  GET_NUMBER_OF_HORSES()
+}
+
+#define macro SET_NUMBER_OF_HORSES() = takes(0) returns(0){
+  //get value to store in storage from calldata using calldataload
+  0x04 //[4]
+  calldataload //[calldataexcludingselector]
+
+
+  //call sstore with relevant inputs
+  [NUMBER_OF_HORSES_STORAGE_SLOT] //[numberofhorses_storage_slot, calldataexcludingselector]
+  sstore //[]
+  stop 
+}
+#define macro GET_NUMBER_OF_HORSES() = takes(0) returns(0){
+   [NUMBER_OF_HORSES_STORAGE_SLOT] //[numberofhorses_storage_slot]
+   sload //[valuefromslot0]
+   0x00 //[0,valuefromslot0]
+   mstore //[]
+  0x20 //[32]
+  0x00 //[0,32]
+  return
+}
