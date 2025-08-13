@@ -2943,7 +2943,7 @@ On running this, you will see that:
 ```
 64a0ae9200000000000000000000000000000000000000000000000000000000
 ```
-is stored in memory at the free memory pointer which is simply the error selector which is keccak256(first 4 bytes of ERC721InvalidReceiver(address)) concatenated with 32 bytes of 0 as you know the zero address is 20 bytes of 0 but it is preprended with 12 bytes of 0 and then the revert opcode is called on the full 36 byte word.
+is stored in memory at the free memory pointer which is simply the error selector which is bytes4(keccak256(ERC721InvalidReceiver(address)) concatenated with 32 bytes of 0 as you know the zero address is 20 bytes of 0 but it is preprended with 12 bytes of 0 and then the revert opcode is called on the full 36 byte word.
 
 # DYNAMIC VS STATIC ARRAY TYPES
 
