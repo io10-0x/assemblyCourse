@@ -216,7 +216,7 @@ The most significant bit (MSB), or the leftmost bit, is used as the sign indicat
 - **0 in the MSB:** Indicates a non-negative (zero or positive) number.
 - **1 in the MSB:** Indicates a negative number.
 
-This is the major reason why we see only 9 bits in 0x0102. 01 represents 1 byte and in bits, this is simply 0000 0001 . so the ful 16 bits would be '0b 0000 0001 0000 0010'. So the MSB for these 16 bits is 0 which indicates that it is a positive number. The settings in cast must be to set all bits to their minimal form. So what this means is that it aims to remove any unnecessary information from the bits.
+This is the major reason why we see only 9 bits in 0x0102. 01 represents 1 byte and in bits, this is simply 0000 0001 . so the full 16 bits would be '0b 0000 0001 0000 0010'. So the MSB for these 16 bits is 0 which indicates that it is a positive number. The settings in cast must be to set all bits to their minimal form. So what this means is that it aims to remove any unnecessary information from the bits.
 
 So when we have something like '0b 0000 0001 0000 0010', since the MSB is 0, all the leading 0's can be removed as they don't change what the number is. For example, if you have '0b 1 00000010', this is a 9 bit number and if we run:
 
@@ -232,7 +232,7 @@ cast --to-base 0b0000000100000010 dec
 
 which is the 16 bit representation of the same number. These 2 should return the same number in decimal format. Only leading zeros are seen as irrelevant. If you try to remove any zeros that come after a 1, those 0's determine the value of the number so if you omit even a single zero, the number will change.
 
-So when we change 0x0102 to hex, it removes all irrelevant leading 0's which is why we have 9 bits instead of the 16 but we can left pad 0's to make it into our 16 bit format.
+So when we change 0x0102 to binary, it removes all irrelevant leading 0's which is why we have 9 bits instead of the 16 but we can left pad 0's to make it into our 16 bit format.
 
 If our hex was something like 0xF102, F is a nibble of 1111. A nibble is simply 4 bits. In this case, the MSB will be 1 which means it is a negative number. If we run:
 
@@ -260,7 +260,7 @@ So if we run:
 cast --to-base 0xF102 dec
 ```
 
-This will give us a uint version of 0xF102 which is 61697. We know that the MSB is 1 so this will be a negative number so to change this to a negative number, we run 61697 - 65535. So an int version of 0xF102 is -3838 which is within the range of negative numbers as you see above. Knowing this is going to level you up a lot.
+This will give us a uint version of 0xF102 which is 61698. We know that the MSB is 1 so this will be a negative number so to change this to a negative number, we run 61698 - 65536. i.e. (uint version of 0xF102) - (number of distinct bit patterns for 16 bits). So an int version of 0xF102 is -3838 which is within the range of negative numbers as you see above. Knowing this is going to level you up a lot.
 
 Lets go back to SHR now. With the knowledge we just gained, it will be much easier to understand SHR. As explained above, SHR, just deletes a number of bits for us by 'moving it to the right'. Lets continue with our 0b100000010 example. Note that the 0b just signifies that this is a binary.
 
@@ -473,7 +473,7 @@ Now we know what the program counter is, lets see how we can use our JUMPI opcod
 #define macro SET_NUMBER_OF_HORSES() = takes(0) returns(0){}
 ```
 
-So what we did in the code above was to use a label in huff. A label is like a variable where we can set it to anything. Think of it like memory variables in solidity. This one we named it updateJump but in reality we could have called it anything. This label will fetch what the program counter is for any macro we define and assign to it. So we dont have to manually type it in hex, using lables gets what the current program counter is for whatever macro we want.
+So what we did in the code above was to use a label in huff. A label is like a variable where we can set it to anything. Think of it like memory variables in solidity. This one we named it updateJump but in reality we could have called it anything. This label will fetch what the program counter is for any macro we define and assign to it. So we dont have to manually type it in hex, using labels gets what the current program counter is for whatever macro we want.
 
 By doing this, we now have both the inputs we need in the stack so we can call JUMPI opcode to jump to the relevant function which we did. After this, we point the updateJump label to the macro we want it to fetch the program counter for. Notice how after we call JUMPI, there is nothing left on the stack. This is important to note. Any inputs that an opcode takes are ALWAYS taken off the stack and never put back.
 
@@ -2314,7 +2314,7 @@ This was the first thing I attempted to recreate. To do this, I had to lean a lo
 #define macro CONSTRUCTOR() =
 ```
 
-All good. As you can see, we define a macro called constructor because our solidity code had a constructor so we needed to implement that in our huff code and the huff code in the macros secttion says MAIN and CONSTRUCTOR are two important macros that serve special purposes. When your contract is called, the MAIN macro will be the fallback, and it is commonly where a Huff contract's control flow begins. The CONSTRUCTOR macro, while not required, can be used to initialize the contract upon deployment. Inputs to the CONSTRUCTOR macro are provided at compile time.
+All good. As you can see, we define a macro called constructor because our solidity code had a constructor so we needed to implement that in our huff code and the huff docs in the macros section says MAIN and CONSTRUCTOR are two important macros that serve special purposes. When your contract is called, the MAIN macro will be the fallback, and it is commonly where a Huff contract's control flow begins. The CONSTRUCTOR macro, while not required, can be used to initialize the contract upon deployment. Inputs to the CONSTRUCTOR macro are provided at compile time.
 
 By default, the CONSTRUCTOR will add some bootstrap code that returns the compiled MAIN macro as the contract's runtime bytecode. If the constructor contains a RETURN opcode, the compiler will not include this bootstrap, and it will instead instantiate the contract with the code returned by the constructor.
 
@@ -2429,9 +2429,9 @@ abstract contract ERC721 is Context, ERC165, IERC721, IERC721Metadata, IERC721Er
 
 Just from looking at this, it is obvious as to why we SSTORE `NFT_NAME` at slot 0 because in this constructor we inherited, it sets `_name` = `name_`.` _name` is the variable at slot 0 of the contract. So we inherited this constructor which means the constructor runs in context of our TestInheritance.sol contract which is why you see "HorseStore" at slot 0. So this is another key point to bear in mind. When you inherit from another contract, you are inheriting all of its storage as well. so in TestInheritance.sol, we have the horseIdToFedTimeStamp mapping and if you just look at that contract, you will think this mapping is at slot 0 but it is not. This is because TestInheritance.sol inherits from ERC721Enumerable as shown above and ERC721Enumerable has its own storage variables declared which get inherited by Testinheritance.sol.
 
-It doesnt end there thoug, ERC721Enumerable inherits from ERC721 and as shown above, ERC721 has its own storage variables declared. Although ERC721 also inherits from Context, ERC165, IERC721, IERC721Metadata, IERC721Errors, none of these contracts or interfaces have any storage variables declared so for TestInheritance.sol, the base contract in terms of storage is going to be the ERC721 contract so starting from that contract, at storage slot 0 is ` _name` which is why when we ran the code in the playground, "HorseStore" from our TestInheritance.sol contract got stored in slot 0.
+It doesnt end there though, ERC721Enumerable inherits from ERC721 and as shown above, ERC721 has its own storage variables declared. Although ERC721 also inherits from Context, ERC165, IERC721, IERC721Metadata, IERC721Errors, none of these contracts or interfaces have any storage variables declared so for TestInheritance.sol, the base contract in terms of storage is going to be the ERC721 contract so starting from that contract, at storage slot 0 is ` _name` which is why when we ran the code in the playground, "HorseStore" from our TestInheritance.sol contract got stored in slot 0.
 
-With this, we were able to anser the question as to what should happen in our CONSTRUCTOR macro of our HorseStorev2.huff contract.
+With this, we were able to answer the question as to what should happen in our CONSTRUCTOR macro of our HorseStorev2.huff contract.
 
 /_ Interfaces _/
 #define function mintHorse() nonpayable
@@ -2943,7 +2943,7 @@ On running this, you will see that:
 ```
 64a0ae9200000000000000000000000000000000000000000000000000000000
 ```
-is stored in memory at the free memory pointer which is simply the error selector which is keccak256(first 4 bytes of ERC721InvalidReceiver(address)) concatenated with 32 bytes of 0 as you know the zero address is 20 bytes of 0 but it is preprended with 12 bytes of 0 and then the revert opcode is called on the full 36 byte word.
+is stored in memory at the free memory pointer which is simply the error selector which is bytes4(keccak256(ERC721InvalidReceiver(address))) concatenated with 32 bytes of 0 as you know the zero address is 20 bytes of 0 but it is preprended with 12 bytes of 0 and then the revert opcode is called on the full 36 byte word.
 
 # DYNAMIC VS STATIC ARRAY TYPES
 
@@ -2999,7 +2999,7 @@ Once I finished with HorseStoreV2.huff, the next step was to compile it which i 
 
 
 
-TALK ABOUT SHORT CIRCUIT LOGIC ANS HOW SOLIDITY USES IT WITH OR OPERATORS
+# TALK ABOUT SHORT CIRCUIT LOGIC ANS HOW SOLIDITY USES IT WITH OR OPERATORS
 
 Here's the function:
 solidity
@@ -3097,3 +3097,4 @@ if (msg.sender == owner || isApproved(msg.sender)) {
 }
 
 LOOK AT WHAT HAPPENS IN THE EVM WITH LOW LEVEL CALL OR DELEGATECALL AND USE THIS TO EXPLAIN WHY REVERTS DONT HAPPEN DURING THEM. USE VELVET V4 AUDIT AS EXAMPLE
+
