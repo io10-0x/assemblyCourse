@@ -260,7 +260,7 @@ So if we run:
 cast --to-base 0xF102 dec
 ```
 
-This will give us a uint version of 0xF102 which is 61698. We know that the MSB is 1 so this will be a negative number so to change this to a negative number, we run 61698 - 65536. i.e. (uint version of 0xF102) - (number of distinct bit patterns for 16 bits). So an int version of 0xF102 is -3838 which is within the range of negative numbers as you see above. Knowing this is going to level you up a lot.
+This will give us a uint256 version of 0xF102 which is 61698. We know that the MSB is 1 so this will be a negative number so to change this to a negative number, we run 61698 - 65536. i.e. (uint256 version of 0xF102) - (number of distinct bit patterns for 16 bits). So an int version of 0xF102 is -3838 which is within the range of negative numbers as you see above. Knowing this is going to level you up a lot.
 
 Lets go back to SHR now. With the knowledge we just gained, it will be much easier to understand SHR. As explained above, SHR, just deletes a number of bits for us by 'moving it to the right'. Lets continue with our 0b100000010 example. Note that the 0b just signifies that this is a binary.
 
