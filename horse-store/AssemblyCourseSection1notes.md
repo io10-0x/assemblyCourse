@@ -169,7 +169,7 @@ So this is how we have our HorseStore.huff now:
 
 To use an opcode in huff, all we have to do is write the name of it in the macro. A great practice to have in huff is to visualize what is on the stack using comments. so as you see above, with every command, we have commented out an array to show what is in the stack with the leftmost element being the top of the stack and each subsequent element being the next element on the stack. For example, if we had //[3,5,2], the top element on the stack would be 3 followed by 5 and then 2.
 
-# SHR (RIGHT SHIFT) , CAST --TO-BASE BIN, HEX, DEC, TWOS COMPLEMENT SYSTEM, MOST VS LEAST SIGNIFICANT BITS, BASE CONVERSION SYSTEM
+# SHR (RIGHT SHIFT) , CAST --TO-BASE BIN, HEX, DEC, TWOS COMPLEMENT SYSTEM, MOST VS LEAST SIGNIFICANT BITS, BASE CONVERSION ALGORITHM
 
 This is where my point about right shifting where in bytes, things move from right to left. Remember our aim is to get the calldata and extract the function and to do this, we need to extract the function selector from the calldata. To extract the function selector from the calldata, we need to delete some bytes from the calldata until only the first 4 bytes are left which is the function selector.
 
@@ -219,7 +219,7 @@ The most significant bit (MSB), or the leftmost bit, is used as the sign indicat
 
 Take 0x0102 for example. 01 represents 1 byte and in bits, this is simply 0000 0001 . so the full 16 bits would be '0b 0000 0001 0000 0010'. So the MSB for these 16 bits is 0 which indicates that it is a positive number. The settings in cast must be to set all bits to their minimal form which is why when converting the hex to binary, we only see 9 bits instead of 16. The fixed width rule only applies to the twos complement system where positive and negative integers are to be represented in binary. This is why I defined what a system is at the start so you understand that components could be systems themselved but when used as components of other systems, they can be constrained. Binary values 0 and 1 are a component of the twos complement system and when used in this system to represent positive and negative numbers, they must have a fixed width. Binary values on their own dont normally have to be 8 bits or 16 bits, etc. Cast using minimal representation means is that it aims to remove any unnecessary information from the bits. 
 
-So when we have something like '0b 0000 0001 0000 0010', all the leading 0's can be removed as leading zeroes dont influence the base conversion system which is a seperate system to the twos complement system. For example, if you have '0b 1 00000010', this is a 9 bit number and if we run:
+So when we have something like '0b 0000 0001 0000 0010', all the leading 0's can be removed as leading zeroes dont influence the base conversion algorithm which is an algorithm used in the base value system which is a seperate system to the twos complement system. For example, if you have '0b 1 00000010', this is a 9 bit number and if we run:
 
 ```bash
 cast --to-base 0b100000010 dec
@@ -231,7 +231,7 @@ and:
 cast --to-base 0b0000000100000010 dec
 ```
 
-which is the 16 bit representation of the same number. These 2 will return the same number in decimal format. Only leading zeros are seen as irrelevant. If you try to remove any zeros that come after a 1 literal, those 0's are relevant in the base conversion system so if you omit even a single zero, the number will change. To understand why this is, you need to understand the base conversion system. We cover this in # 5 DIFFERENCE BETWEEN BINARY, DECIMALS AND HEXADECIMALS, HOW SOLIDITY HANDLES BINARY VALUES WITH CONVERSION TO HEX of the virtuals audit notes so have a look there for a recap but in summary, if you have 0b1001 and 0b00100, to convert these values to base 10:
+which is the 16 bit representation of the same number. These 2 will return the same number in decimal format. Only leading zeros are seen as irrelevant. If you try to remove any zeros that come after a 1 literal, those 0's are relevant in the base conversion algorithm so if you omit even a single zero, the number will change. To understand why this is, you need to understand the base conversion algorithm (remember we cover the difference between algebra(system) and an algorithm. See understandingCompilersAndInterpreters.md data types section in rustCompiler directory for recap). We cover this in # 5 DIFFERENCE BETWEEN BINARY, DECIMALS AND HEXADECIMALS, HOW SOLIDITY HANDLES BINARY VALUES WITH CONVERSION TO HEX of the virtuals audit notes so have a look there for a recap but in summary, if you have 0b1001 and 0b00100, to convert these values to base 10:
 
 0b1001 = 2^3 * 1 + 2^2 * 0 + 2^1 * 0 + 2^0 * 1 = 10
 
@@ -239,7 +239,7 @@ If we had:
 
 0b001001 (left pad 2 zeroes) = 2^5 * 0 + 2^4 * 0 +  2^3 * 1 + 2^2 * 0 + 2^1 * 0 + 2^0 * 1 = 10
 
-By left padding zeroes, the base conversion does not change and this is due to the exponents before the first 1 literal all multiply by 0 which evaluates to 0. So the only time the exponent starts to matter is after the first 1 literal. Lets see what that means. 
+By left padding zeroes, the converted value does not change and this is due to the exponents before the first 1 literal all multiply by 0 which evaluates to 0. So the only time the exponent starts to matter is after the first 1 literal. Lets see what that means. 
 
 If we had:
 
