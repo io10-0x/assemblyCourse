@@ -201,25 +201,84 @@ cast --to-base 0x0102 bin
 
 This will return '0b 1 00000010'. The 0b just tells us that this is a binary. Now you might be wondering why there are 9 bits left here instead of the expected 16. We are about to go down a rabbit hole here so strap in as you are about to learn a lot of stuff. Lets introduce the twos complement system.
 
-To understand this, we need to understand what a system is. A system gives you components, relationships between components, constraints on how components interacts and can additionally include dynamics i.e. how the components state changes over time.  This is what a system is. A good way to reason about it is to liken a system to a entering a new world and in this world, there are rules that govern how the world works and you must conform to these rules to live in this world. For example, on earth, there are components and one such component is a human being. Another component is food. Relationship between these components is that a human must eat food to survive. Constraint is that human beings cannot fly. These are rules that govern how components interact in our world. In this way, you can liken earth to a system. 
+To understand this, we need to understand what a system is. A system gives you components, relationships between components, constraints on how components interacts and can additionally include dynamics i.e. how the components state changes over time.  This is what a system is. A good way to reason about it is to liken a system to a entering a new world and in this world, there are rules that govern how the world works and you must conform to these rules to live in this world. For example, on earth, there are components and one such component is a human being. Another component is food. Relationship between these components is that a human must eat food to survive. Constraint is that human beings cannot fly. These are rules that govern how components interact on earth. In this way, you can liken earth to a system. Only components can interact in a system. Anything that is not a component of the system cannot be involved in the system.
 
-Two’s complement is a binary numbering system used to represent both positive and negative integers. This is the aim of the system. It’s the most common method for encoding signed numbers in digital systems and computers. Below are the rules that govern the twos complement system:
+A typical example of a system which directly relates to the topic we are discussing are number systems. Number systems that is used to represent how we can represent positive integers using symbols. There are a few types of number systems and each type is its own world with its own components and constraints (rules that apply to this world). The key point to note is that the systems aim is to be able to represent a final positive integer using different symbols.
+
+All number systems have the following components:
+
+- Symbols (digits)
+Binary: {0, 1}
+Decimal: {0–9}
+Hex: {0–9, A–F}
+
+- Base (radix)
+Binary = 2
+Decimal = 10
+Hex = 16
+
+- Positions (places)
+
+- Separator for fractional part. (floating point)
+Decimal point (.)
+Binary point (.)
+
+These are some of the key rules that govern number systems (how components interact with each other):
+
+- The weight of each position is governed by symbol * base^position where each symbol's associated position is incremented right to left starting from 0. After the separator, each symbol's associated position decrements from left to right starting from -1.
+- The number that represents of a sequence of symbols in a number system is evaluated by sum of (symbol * base^position) for each symbol in the sequence. 
+
+Lets see how these systems work with examples.
+
+Decimal number system (10)
+This is the standard number system we use every day — Components {0–9}, base 10.
+
+
+So when you see:
+10 (decimal number system) = 1 × 10¹ + 0 × 10⁰ = 10. Each place is worth 10 times more than the one to its right before the seperator due to the symbol * base^position rule. So with the number 10 , the 1 is worth 10 times more than the 0 to the right of it which is why normal numbers we use, we call them base 10.
+
+10.784 = 1 × 10^1 + 0 × 10^0 + 7 * 10^-1 + 8 * 10^-2 + 4 * 10^-3 = 10 + 0 + 0.7 + 0.008 + 0.0004 = 10.784. As the rules of the number system world enforce, after the seperator, each symbols associated position decrements from -1.
+
+In the decimal number system world, 1 0 . 7 8 4 is a sequence of valid symbols and if we want a positive integer that represents this sequence of symbols, the decimal number system tells us that this positive integer is 10.784.
+
+2. Binary (10)
+This is base 2, used by computers  — Components {0,1}, base 2.
+Digits: 0 and 1 only.
+Each place is worth 2 times more than the one to its right before the seperator due to the symbol * base^position rule.
+
+So:
+10 = 1 × 2¹ + 0 × 2⁰ = 2
+In the binary number system world, 1 0 is a sequence of valid symbols and if we want a positive integer that represents this sequence of symbols, the binary number system tells us that this positive integer is 2.
+
+0b101.01 = 1 * 2^2 + 0 * 2^1 + 1 * 2^0 + 0 * 2^-1 + 1 * 2^-2 = 5.02
+In the binary number system world, 1 0 1 . 0 1 is a sequence of valid symbols and if we want a positive integer that represents this sequence of symbols, the binary number system tells us that this number is 5.02.
+
+3. Hexadecimal (0x10)
+This is base 16, often used in programming and smart contracts. Components {0–9, A–F} (where A = 10, B = 11, ..., F = 15) , base 16.
+
+Each place is worth 16 times more than the one to its right before the seperator due to the symbol * base^position rule.
+
+So:
+0x1B.8A = 1 × 16^1 + 0 × 16^0 + 8 * 16^-1 + 10 * 16^-2  = 16.9
+In the hex number system world, 1 B . 8 A is a sequence of valid symbols and if we want a number that represents this sequence of symbols, the hex number system tells us that this number is 16.9.
+
+Two’s complement is a system that inherits from the binary numbering system and is used as a method to represent both positive and negative integers using binary symbols. This system builds on the binary number system and adds rules that allow both positive and negative number representation. It’s the most common method for encoding signed numbers in digital systems and computers. Since the twos complement system inherits from the binary number system, it inherits all its components and rules. Below are the extra rules that govern the twos complement system:
 
 ### Fixed Bit Width
 
-In a two’s complement system, numbers are represented using a fixed number of bits (for example, 8-bit, 16-bit, 32-bit, etc.). These bits are components of the twos complement system. The total number of distinct bit patterns is 2^n for an n-bit number. So for 0x0102, we know that the fixed number of bits is 16 so the total number of distinct bit patterns is 2^16 which is 65536. This means that the binary representation "wraps around" after reaching 2^16. Does this ring a bell? Remember how when we had a uint8 value, if the value goes over type(uint8), it goes back to 0, this is the reason why. This is the fixed bit width rule that governs the two complement system. 
+In a two’s complement system, numbers are represented using a fixed number of bits (for example, 8-bit, 16-bit, 32-bit, etc.). The total number of distinct bit patterns is 2^n for an n-bit number. For any fixed width i.e. 16 bit fixed width, the total number of distinct bit patterns is 2^16 which is 65536. This means that the binary representation "wraps around" after reaching 2^16. Does this ring a bell? In solidity, when we have a uint8 value, if the value goes over type(uint8).max, it goes back to 0, This fixed width rule is the reason for this behaviour. 
 
 
 ### Sign Bit (MSB)
 
 The most significant bit (MSB), or the leftmost bit, is used as the sign indicator:
 
-- **0 in the MSB:** Indicates a non-negative (zero or positive) number.
-- **1 in the MSB:** Indicates a negative number.
+- 0 in the MSB: Indicates a non-negative (zero or positive) number.
+- 1 in the MSB: Indicates a negative number.
 
-Take 0x0102 for example. 01 represents 1 byte and in bits, this is simply 0000 0001 . so the full 16 bits would be '0b 0000 0001 0000 0010'. So the MSB for these 16 bits is 0 which indicates that it is a positive number. The settings in cast must be to set all bits to their minimal form which is why when converting the hex to binary, we only see 9 bits instead of 16. The fixed width rule only applies to the twos complement system where positive and negative integers are to be represented in binary. This is why I defined what a system is at the start so you understand that components could be systems themselved but when used as components of other systems, they can be constrained. Binary values 0 and 1 are a component of the twos complement system and when used in this system to represent positive and negative numbers, they must have a fixed width. Binary values on their own dont normally have to be 8 bits or 16 bits, etc. Cast using minimal representation means is that it aims to remove any unnecessary information from the bits. 
+Take '0b 0000 0001 0000 0010'for example. The MSB for these 16 bits is 0 which indicates that it is a positive number. The settings when using the cast tool must be to set all bits to their minimal form which is why when converting hex to binary like 0x0102, we only see 9 bits instead of 16. The fixed width rule only applies to the twos complement system where positive and negative integers are to be represented in binary. Binary values 0 and 1 are components of the twos complement system as explained earlier and when used in this system to represent positive and negative numbers, they must have a fixed width. Binary values operating in the binary number system dont have to be 8 bits or 16 bits, etc. Cast using minimal representation means is that it aims to remove any unnecessary information from the bits. 
 
-So when we have something like '0b 0000 0001 0000 0010', all the leading 0's can be removed as leading zeroes dont influence the base conversion algorithm which is an algorithm used in the base value system which is a seperate system to the twos complement system. For example, if you have '0b 1 00000010', this is a 9 bit number and if we run:
+So when we have something like '0b 0000 0001 0000 0010', all the leading 0's can be removed as leading zeroes dont influence the number representation from the binary number system as we covered above. For example, if you have '0b 1 00000010', this is a 9 bit number and if we run:
 
 ```bash
 cast --to-base 0b100000010 dec
@@ -231,7 +290,7 @@ and:
 cast --to-base 0b0000000100000010 dec
 ```
 
-which is the 16 bit representation of the same number. These 2 will return the same number in decimal format. Only leading zeros are seen as irrelevant. If you try to remove any zeros that come after a 1 literal, those 0's are relevant in the base conversion algorithm so if you omit even a single zero, the number will change. To understand why this is, you need to understand the base conversion algorithm (remember we cover the difference between algebra(system) and an algorithm. See understandingCompilersAndInterpreters.md data types section in rustCompiler directory for recap). We cover this in # 5 DIFFERENCE BETWEEN BINARY, DECIMALS AND HEXADECIMALS, HOW SOLIDITY HANDLES BINARY VALUES WITH CONVERSION TO HEX of the virtuals audit notes so have a look there for a recap but in summary, if you have 0b1001 and 0b00100, to convert these values to base 10:
+These 2 will return the same number repreentation. Leading zeros are seen as irrelevant. If you try to remove any zeros that come after a 1 literal, those 0's are relevant in the binary number system so if you omit even a single zero, the number representation will change. To understand why this is, we have already partially covered it when discussing the binary number system but lets go back into the binary number system world and see some more examples:
 
 0b1001 = 2^3 * 1 + 2^2 * 0 + 2^1 * 0 + 2^0 * 1 = 10
 
@@ -239,7 +298,7 @@ If we had:
 
 0b001001 (left pad 2 zeroes) = 2^5 * 0 + 2^4 * 0 +  2^3 * 1 + 2^2 * 0 + 2^1 * 0 + 2^0 * 1 = 10
 
-By left padding zeroes, the converted value does not change and this is due to the exponents before the first 1 literal all multiply by 0 which evaluates to 0. So the only time the exponent starts to matter is after the first 1 literal. Lets see what that means. 
+By left padding zeroes, the number representation does not change and this is due to the exponents before the first 1 literal all multiply by 0 which evaluates to 0. So the only time the exponent starts to matter is after the first 1 literal. Lets see what that means. 
 
 If we had:
 
@@ -247,7 +306,7 @@ If we had:
 
 By changing the binary positions after the first 1 literal, you are shifting the position of that literal to the left which means you are increasing the exponent that is used to evaluate the base 10 value at that position. As a result, you change the number entirely. This is why leading zeroes are seen as irrelevant until the first 1 literal.
 
-So when we change 0x0102 to binary, it removes all irrelevant leading 0's which is why we have 9 bits instead of the 16 but we can left pad 0's to make it into our 16 bit format.
+So when we change 0x0102 to binary, it removes all irrelevant leading 0's which is why we have 9 bits instead of the 16 but we can left pad 0's to make it into our 16 bit format and we will still be obeying all the rules of the binary number system.
 
 If our hex was something like 0xF102, F is a nibble of 1111. A nibble is simply 4 bits. In this case, if we run:
 
@@ -259,25 +318,21 @@ we will get the full 16 bit representation because there will be no leading zero
 
 ### Range of Values
 
-This final twos complement rule will tie the first 2 rules together so you can understand how a number maps to a positive or negative integer using the twos complement system. Remember the aim of the system is to present a method to represent positive and negative integers. 
+This final twos complement rule will tie the first 2 rules together so you can understand how a binary symbol sequence maps to a positive or negative integer using the twos complement system. Remember the aim of the system is to present a method to represent positive and negative integers. The binary number system only represents binary symbols as positive integers.
 
 The range of values rule states that for an n-bit number:
 
-- **Positive range:** 0 to (2^{n-1} - 1)
-- **Negative range:** (-2^{n-1}) to (-1)
+- Positive range: 0 to (2^{n-1} - 1)
+- Negative range: (-2^{n-1}) to (-1)
+
+To get the twos complement representation of any sequence of binaries, the rule is (binary number system representation of binary value with fixed width and MSB) - (number of distinct bit patterns for fixed width).
 
 For example, in a 16-bit two’s complement system:
 
-- **Positive numbers:** 0 to 32767
-- **Negative numbers:** -32768 to -1
+- Positive numbers: 0 to 32767
+- Negative numbers: -32768 to -1
 
-So if we run:
-
-```bash
-cast --to-base 0xF102 dec
-```
-
-This will convert the 16 bits from base 2 to a base 10 which is 61698. Using the twos complement system, we know that 0xF102 has a 16 bits in it (fixed bit rule). We know that the MSB is 1 so this will be a negative number (most significant bit rule) so to change this to a negative number, we run 61698 - 65536 (range of values rule). i.e. (base 10 version of 0xF102) - (number of distinct bit patterns for 16 bits in base 10). So applying the 3 main rules of twos complement to 0xF102 , we get a negative integer of -3838 which is within the range of negative numbers for a 16 bit number as you see above. Knowing this is going to level you up a lot. Note that outside of the twos complement system, none of these rules apply to binary digits. All the above rules are only applied when in the twos complement system. For example, the fixed width rule, 8 bit, 16 bit, etc is only a constraint in the twos complement system. So seeing 9 bits as returned by cast is actually very normal. It is just not allowed in the twos complement system. Binary values dont have normal have a fixed witdth unless they are enforced in a system.
+Using the twos complement system, if we have 0b1111000100000010, we know this has 16 bits in it (fixed bit rule). We know that the MSB is 1 so this will be a negative number (most significant bit rule) So to change this to a negative number, we run 61698 - 65536 (range of values rule). i.e. (binary number system representation of 0b1111000100000010) - (number of distinct bit patterns for 16 bits). So applying the 3 main rules of twos complement to 0xF102 , we get a negative integer of -3838 which is within the range of negative numbers for a 16 bit number as you see above. Knowing this is going to level you up a lot. Note that outside of the twos complement system, none of these rules apply to the binary number system as that systems only concern is converting binary symbol components to positive integers. All the above rules are only applied in the twos complement system. For example, the fixed width rule, 8 bit, 16 bit, etc is only a constraint in the twos complement system. So seeing 9 bits as returned by cast is actually very normal. It is just not allowed in the twos complement system. Binary values dont have normal have a fixed witdth unless they are enforced in a system.
 
 
 Lets go back to SHR now. With the knowledge we just gained, it will be much easier to understand SHR. As explained above, SHR, just deletes a number of bits for us by 'moving it to the right'. Lets continue with our 0b100000010 example. Note that the 0b just signifies that this is a binary.
