@@ -169,7 +169,7 @@ So this is how we have our HorseStore.huff now:
 
 To use an opcode in huff, all we have to do is write the name of it in the macro. A great practice to have in huff is to visualize what is on the stack using comments. so as you see above, with every command, we have commented out an array to show what is in the stack with the leftmost element being the top of the stack and each subsequent element being the next element on the stack. For example, if we had //[3,5,2], the top element on the stack would be 3 followed by 5 and then 2.
 
-# SHR (RIGHT SHIFT) , CAST --TO-BASE BIN, HEX, DEC, TWOS COMPLEMENT SYSTEM, MOST VS LEAST SIGNIFICANT BITS
+# SHR (RIGHT SHIFT) , CAST --TO-BASE BIN, HEX, DEC, TWOS COMPLEMENT SYSTEM, MOST VS LEAST SIGNIFICANT BITS, BASE CONVERSION SYSTEM
 
 This is where my point about right shifting where in bytes, things move from right to left. Remember our aim is to get the calldata and extract the function and to do this, we need to extract the function selector from the calldata. To extract the function selector from the calldata, we need to delete some bytes from the calldata until only the first 4 bytes are left which is the function selector.
 
@@ -193,21 +193,22 @@ Input |	Output			Input	|Output
 
 ```
 
-I will explain the first example in more detail. we want to remove the rightmost 2 bits from 0x01022. We know that there are 2 bytes in this hex. We also know that one byte = 8 bits. We can easily use cast to convert bytes to bits by saying:
+I will explain the first example in more detail. we want to remove the rightmost 2 bits from 0x0102. We know that there are 2 bytes in this hex. We also know that one byte = 8 bits. We can easily use cast to convert bytes to bits by saying:
 
 ```bash
 cast --to-base 0x0102 bin
 ```
 
-This will return '0b 1 00000010'. The 0b just tells us that this is a binary. Now you might be wondering why there are 9 bits left here instead of the expected 16. We are about to go down a rabbit hole here so strap in as you are about to learn a lot of stuff.
+This will return '0b 1 00000010'. The 0b just tells us that this is a binary. Now you might be wondering why there are 9 bits left here instead of the expected 16. We are about to go down a rabbit hole here so strap in as you are about to learn a lot of stuff. Lets introduce the twos complement system.
 
-To understand this, you first need to grasp what a two complement system is:
+To understand this, we need to understand what a system is. A system gives you components, relationships between components, constraints on how components interacts and can additionally include dynamics i.e. how the components state changes over time.  This is what a system is. A good way to reason about it is to liken a system to a entering a new world and in this world, there are rules that govern how the world works and you must conform to these rules to live in this world. For example, on earth, there are components and one such component is a human being. Another component is food. Relationship between these components is that a human must eat food to survive. Constraint is that human beings cannot fly. These are rules that govern how components interact in our world. In this way, you can liken earth to a system. 
 
-Two’s complement is a binary numbering system used to represent both positive and negative integers. It’s the most common method for encoding signed numbers in digital systems and computers. Here’s an overview of how it works:
+Two’s complement is a binary numbering system used to represent both positive and negative integers. This is the aim of the system. It’s the most common method for encoding signed numbers in digital systems and computers. Below are the rules that govern the twos complement system:
 
 ### Fixed Bit Width
 
-In a two’s complement system, numbers are represented using a fixed number of bits (for example, 8-bit, 16-bit, 32-bit, etc.). The total number of distinct bit patterns is 2^n for an n-bit number. So for 0x0102, we know that the fixed number of bits is 16 so the total number of distinct bit patterns is 2^16 which is 65536. This means that the binary representation "wraps around" after reaching 2^16. Does this ring a bell? Remember how when we had a uint8 value, if the value goes over type(uint8), it goes back to 0, this is the reason why.
+In a two’s complement system, numbers are represented using a fixed number of bits (for example, 8-bit, 16-bit, 32-bit, etc.). These bits are components of the twos complement system. The total number of distinct bit patterns is 2^n for an n-bit number. So for 0x0102, we know that the fixed number of bits is 16 so the total number of distinct bit patterns is 2^16 which is 65536. This means that the binary representation "wraps around" after reaching 2^16. Does this ring a bell? Remember how when we had a uint8 value, if the value goes over type(uint8), it goes back to 0, this is the reason why. This is the fixed bit width rule that governs the two complement system. 
+
 
 ### Sign Bit (MSB)
 
@@ -216,9 +217,9 @@ The most significant bit (MSB), or the leftmost bit, is used as the sign indicat
 - **0 in the MSB:** Indicates a non-negative (zero or positive) number.
 - **1 in the MSB:** Indicates a negative number.
 
-This is the major reason why we see only 9 bits in 0x0102. 01 represents 1 byte and in bits, this is simply 0000 0001 . so the full 16 bits would be '0b 0000 0001 0000 0010'. So the MSB for these 16 bits is 0 which indicates that it is a positive number. The settings in cast must be to set all bits to their minimal form. So what this means is that it aims to remove any unnecessary information from the bits.
+Take 0x0102 for example. 01 represents 1 byte and in bits, this is simply 0000 0001 . so the full 16 bits would be '0b 0000 0001 0000 0010'. So the MSB for these 16 bits is 0 which indicates that it is a positive number. The settings in cast must be to set all bits to their minimal form which is why when converting the hex to binary, we only see 9 bits instead of 16. The fixed width rule only applies to the twos complement system where positive and negative integers are to be represented in binary. This is why I defined what a system is at the start so you understand that components could be systems themselved but when used as components of other systems, they can be constrained. Binary values 0 and 1 are a component of the twos complement system and when used in this system to represent positive and negative numbers, they must have a fixed width. Binary values on their own dont normally have to be 8 bits or 16 bits, etc. Cast using minimal representation means is that it aims to remove any unnecessary information from the bits. 
 
-So when we have something like '0b 0000 0001 0000 0010', since the MSB is 0, all the leading 0's can be removed as they don't change what the number is. For example, if you have '0b 1 00000010', this is a 9 bit number and if we run:
+So when we have something like '0b 0000 0001 0000 0010', all the leading 0's can be removed as leading zeroes dont influence the base conversion system which is a seperate system to the twos complement system. For example, if you have '0b 1 00000010', this is a 9 bit number and if we run:
 
 ```bash
 cast --to-base 0b100000010 dec
@@ -230,21 +231,37 @@ and:
 cast --to-base 0b0000000100000010 dec
 ```
 
-which is the 16 bit representation of the same number. These 2 should return the same number in decimal format. Only leading zeros are seen as irrelevant. If you try to remove any zeros that come after a 1, those 0's determine the value of the number so if you omit even a single zero, the number will change.
+which is the 16 bit representation of the same number. These 2 will return the same number in decimal format. Only leading zeros are seen as irrelevant. If you try to remove any zeros that come after a 1 literal, those 0's are relevant in the base conversion system so if you omit even a single zero, the number will change. To understand why this is, you need to understand the base conversion system. We cover this in # 5 DIFFERENCE BETWEEN BINARY, DECIMALS AND HEXADECIMALS, HOW SOLIDITY HANDLES BINARY VALUES WITH CONVERSION TO HEX of the virtuals audit notes so have a look there for a recap but in summary, if you have 0b1001 and 0b00100, to convert these values to base 10:
+
+0b1001 = 2^3 * 1 + 2^2 * 0 + 2^1 * 0 + 2^0 * 1 = 10
+
+If we had:
+
+0b001001 (left pad 2 zeroes) = 2^5 * 0 + 2^4 * 0 +  2^3 * 1 + 2^2 * 0 + 2^1 * 0 + 2^0 * 1 = 10
+
+By left padding zeroes, the base conversion does not change and this is due to the exponents before the first 1 literal all multiply by 0 which evaluates to 0. So the only time the exponent starts to matter is after the first 1 literal. Lets see what that means. 
+
+If we had:
+
+0b100100(right pad 2 zeroes) = 2^5 * 1 + 2^4 * 0 +  2^3 * 0 + 2^2 * 1 + 2^1 * 0 + 2^0 * 0 = 36
+
+By changing the binary positions after the first 1 literal, you are shifting the position of that literal to the left which means you are increasing the exponent that is used to evaluate the base 10 value at that position. As a result, you change the number entirely. This is why leading zeroes are seen as irrelevant until the first 1 literal.
 
 So when we change 0x0102 to binary, it removes all irrelevant leading 0's which is why we have 9 bits instead of the 16 but we can left pad 0's to make it into our 16 bit format.
 
-If our hex was something like 0xF102, F is a nibble of 1111. A nibble is simply 4 bits. In this case, the MSB will be 1 which means it is a negative number. If we run:
+If our hex was something like 0xF102, F is a nibble of 1111. A nibble is simply 4 bits. In this case, if we run:
 
 ```bash
 cast --to-base 0xF102 bin
 ```
 
-we will get the full 16 bit representation because there will be no leading zeros as the MSB is 1 so the first bit is 1 which means there are no leading zeros to remove. As a result, we will be returned the full 16 bits which is "0b 1111 0001 0000 0001" .
+we will get the full 16 bit representation because there will be no leading zeros as the first bit is 1 which means there are no leading zeros to remove. As a result, we will be returned the full 16 bits which is "0b 1111 0001 0000 0001" .
 
 ### Range of Values
 
-For an n-bit number:
+This final twos complement rule will tie the first 2 rules together so you can understand how a number maps to a positive or negative integer using the twos complement system. Remember the aim of the system is to present a method to represent positive and negative integers. 
+
+The range of values rule states that for an n-bit number:
 
 - **Positive range:** 0 to (2^{n-1} - 1)
 - **Negative range:** (-2^{n-1}) to (-1)
@@ -260,7 +277,8 @@ So if we run:
 cast --to-base 0xF102 dec
 ```
 
-This will give us a uint version of 0xF102 which is 61698. We know that the MSB is 1 so this will be a negative number so to change this to a negative number, we run 61698 - 65536. i.e. (uint version of 0xF102) - (number of distinct bit patterns for 16 bits). So an int version of 0xF102 is -3838 which is within the range of negative numbers as you see above. Knowing this is going to level you up a lot.
+This will convert the 16 bits from base 2 to a base 10 which is 61698. Using the twos complement system, we know that 0xF102 has a 16 bits in it (fixed bit rule). We know that the MSB is 1 so this will be a negative number (most significant bit rule) so to change this to a negative number, we run 61698 - 65536 (range of values rule). i.e. (base 10 version of 0xF102) - (number of distinct bit patterns for 16 bits in base 10). So applying the 3 main rules of twos complement to 0xF102 , we get a negative integer of -3838 which is within the range of negative numbers for a 16 bit number as you see above. Knowing this is going to level you up a lot. Note that outside of the twos complement system, none of these rules apply to binary digits. All the above rules are only applied when in the twos complement system. For example, the fixed width rule, 8 bit, 16 bit, etc is only a constraint in the twos complement system. So seeing 9 bits as returned by cast is actually very normal. It is just not allowed in the twos complement system. Binary values dont have normal have a fixed witdth unless they are enforced in a system.
+
 
 Lets go back to SHR now. With the knowledge we just gained, it will be much easier to understand SHR. As explained above, SHR, just deletes a number of bits for us by 'moving it to the right'. Lets continue with our 0b100000010 example. Note that the 0b just signifies that this is a binary.
 
