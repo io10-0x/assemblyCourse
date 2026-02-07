@@ -278,7 +278,7 @@ The most significant bit (MSB), or the leftmost bit, is used as the sign indicat
 
 Take '0b 0000 0001 0000 0010'for example. The MSB for these 16 bits is 0 which indicates that it is a positive number. The settings when using the cast tool must be to set all bits to their minimal form which is why when converting hex to binary like 0x0102, we only see 9 bits instead of 16. The fixed width rule only applies to the twos complement system where positive and negative integers are to be represented in binary. Binary values 0 and 1 are components of the twos complement system as explained earlier and when used in this system to represent positive and negative numbers, they must have a fixed width. Binary values operating in the binary number system dont have to be 8 bits or 16 bits, etc. Cast using minimal representation means is that it aims to remove any unnecessary information from the bits. 
 
-So when we have something like '0b 0000 0001 0000 0010', all the leading 0's can be removed as leading zeroes dont influence the number representation from the binary number system as we covered above. For example, if you have '0b 1 00000010', this is a 9 bit number and if we run:
+So when we have something like '0b 0000 0001 0000 0010', all the leading 0's can be removed as leading zeroes dont influence the number representation from the binary number system we covered above. For example, if you have '0b 1 00000010', this is a 9 bit number and if we run:
 
 ```bash
 cast --to-base 0b100000010 dec
@@ -290,7 +290,7 @@ and:
 cast --to-base 0b0000000100000010 dec
 ```
 
-These 2 will return the same number repreentation. Leading zeros are seen as irrelevant. If you try to remove any zeros that come after a 1 literal, those 0's are relevant in the binary number system so if you omit even a single zero, the number representation will change. To understand why this is, we have already partially covered it when discussing the binary number system but lets go back into the binary number system world and see some more examples:
+These 2 will return the same number representation. Leading zeros are seen as irrelevant. If you try to remove any zeros that come after a 1 literal, those 0's are relevant in the binary number system so if you omit even a single zero, the number representation will change. To understand why this is, we have already partially covered it when discussing the binary number system but lets go back into the binary number system world and see some more examples:
 
 0b1001 = 2^3 * 1 + 2^2 * 0 + 2^1 * 0 + 2^0 * 1 = 10
 
