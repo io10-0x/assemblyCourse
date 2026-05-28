@@ -169,9 +169,9 @@ So this is how we have our HorseStore.huff now:
 
 To use an opcode in huff, all we have to do is write the name of it in the macro. A great practice to have in huff is to visualize what is on the stack using comments. so as you see above, with every command, we have commented out an array to show what is in the stack with the leftmost element being the top of the stack and each subsequent element being the next element on the stack. For example, if we had //[3,5,2], the top element on the stack would be 3 followed by 5 and then 2.
 
-# SHR (RIGHT SHIFT) , CAST --TO-BASE BIN, HEX, DEC, TWOS COMPLEMENT SYSTEM, MOST VS LEAST SIGNIFICANT BITS, BASE CONVERSION ALGORITHM
+# SHR (RIGHT SHIFT) , SHL, CAST --TO-BASE BIN, HEX, DEC, TWOS COMPLEMENT SYSTEM, MOST VS LEAST SIGNIFICANT BITS, BASE CONVERSION ALGORITHM
 
-This is where my point about right shifting where in bytes, things move from right to left. Remember our aim is to get the calldata and extract the function and to do this, we need to extract the function selector from the calldata. To extract the function selector from the calldata, we need to delete some bytes from the calldata until only the first 4 bytes are left which is the function selector.
+This is where my point about right shifting where in bits, indexes move from right to left. Remember our aim is to get the calldata and extract the function and to do this, we need to extract the function selector from the calldata. To extract the function selector from the calldata, we need to delete some bytes from the calldata until only the first 4 bytes are left which is the function selector.
 
 To do this, we use the SHR opcode which is known as the logical right shift operator. What it does is to delete a specified number of rightmost bits for us. See evm codes for the description:
 
@@ -301,7 +301,6 @@ If we had:
 By left padding zeroes, the number representation does not change and this is due to the exponents before the first 1 literal all multiply by 0 which evaluates to 0. So the only time the exponent starts to matter is after the first 1 literal. Lets see what that means. 
 
 If we had:
-
 0b100100(right pad 2 zeroes) = 2^5 * 1 + 2^4 * 0 +  2^3 * 0 + 2^2 * 1 + 2^1 * 0 + 2^0 * 0 = 36
 
 By changing the binary positions after the first 1 literal, you are shifting the position of that literal to the left which means you are increasing the exponent that is used to evaluate the base 10 value at that position. As a result, you change the number entirely. This is why leading zeroes are seen as irrelevant until the first 1 literal.
@@ -337,19 +336,40 @@ Using the twos complement system, if we have 0b1111000100000010, we know this ha
 
 Lets go back to SHR now. With the knowledge we just gained, it will be much easier to understand SHR. As explained above, SHR, just deletes a number of bits for us by 'moving it to the right'. Lets continue with our 0b100000010 example. Note that the 0b just signifies that this is a binary.
 
-So if we called SHR opcode on 0b100000010 which we know is 0x0102 hex with a shift value of 2 which means we want to shift 2 bits, the new binary would be 0b1000000. To know what this looks like in hex, we can run:
+So if we called SHR opcode on 0b100000010 which we know is 0x0102 hex with a shift value of 2 which means we want to shift 2 bits from the MSB, the new binary would be 0b1000000. To know what this looks like in hex, we can run:
 
 ```bash
 cast --to-base 0b1000000 hex
 ```
 
-which will give us 0x40. This is how the SHR opcode works. It deletes bits from the hex for us. In decimal form, this will be:
+which will give us 0x40. This is how the SHR opcode works. It moves the MSB to the right by the shift argument. In decimal form, this will be:
 
 ```bash
 cast --to-base 0x40 dec
 ```
 
-which will give us an unsigned decimal value of 64.
+which will give us an unsigned decimal value of 64. This is similar to how the SHL opcode works but in the opposite direction. It shift the LSB (least significant bit) left by the provided shift argument. So if we have uint256(type(uint128).max) << 128, the LSB is at bit index 0 and as specified on line 174 , the LSB of a uint256 is at bit index 0 which is the right most bit. bit index 255 is the MSB which gives us a bit range from 0 (LSB) TO 255 (MSB) which is means there are 256 elements in the bit array. By shifting uint256(type(uint128).max) left by 128 bits, the bit that was at bit index 0 is now at bit index 128 as we have shifted it left by 128 bits. The result is 128 1's from bit index 255 to bit index 128 (128 bits) and 0's from bit index 127 to bit index 0 (128 bits). For context, the reason why type(uint128).max is 340282366920938463463374607431768211455 is because number is the decimal representation of 128 1's. It fills all 128 bit indexes from the LSB with 1's which is why it is the max 128 bit word.
+
+```
+➜ uint256 max = uint256(type(uint128).max)
+➜ max
+Type: uint256
+├ Hex: 0xffffffffffffffffffffffffffffffff
+├ Hex (full word): 0x00000000000000000000000000000000ffffffffffffffffffffffffffffffff
+└ Decimal: 340282366920938463463374607431768211455
+
+cast --to-base 340282366920938463463374607431768211455 bin
+0b11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
+
+max = max << 128
+Type: uint256
+├ Hex: 0xffffffffffffffffffffffffffffffff00000000000000000000000000000000
+├ Hex (full word): 0xffffffffffffffffffffffffffffffff00000000000000000000000000000000
+└ Decimal: 115792089237316195423570985008687907852929702298719625575994209400481361428480
+
+cast --to-base 115792089237316195423570985008687907852929702298719625575994209400481361428480 bin
+0b1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+```
 
 # evm.codes PLAYGROUND
 
@@ -3005,7 +3025,7 @@ contract Tests {
         }
 ```
 
-We know that the revert opcode returns some data from memory but when there is a custom revert message, how is this returned? As usual, compile the mini contract in remox and take the bytecode , remove contract creation code and enter calldata for the testcalldata function which is:
+We know that the revert opcode returns some data from memory but when there is a custom revert message, how is this returned? As usual, compile the mini contract in remix and take the bytecode , remove contract creation code and enter calldata for the testcalldata function which is:
 
 ```
 0x4dd40a8f
