@@ -266,8 +266,7 @@ Two’s complement is a system that inherits from the binary numbering system an
 
 ### Fixed Bit Width
 
-In a two’s complement system, numbers are represented using a fixed number of bits (for example, 8-bit, 16-bit, 32-bit, etc.). The total number of distinct bit patterns is 2^n for an n-bit number. For any fixed width i.e. 16 bit fixed width, the total number of distinct bit patterns is 2^16 which is 65536. This means that the binary representation "wraps around" after reaching 2^16. Does this ring a bell? In solidity, when we have a uint8 value, if the value goes over type(uint8).max, it goes back to 0, This fixed width rule is the reason for this behaviour. 
-
+In a two’s complement system, numbers are represented using a fixed number of bits (for example, 8-bit, 16-bit, 32-bit, etc.). This is why in solidity and a lot of statically typed languages, the types has uint256, uint128, int128, int32, etc. The fixed width rule is the reason for this. Unsigned integers also inherit this rule but we will come back to that later.
 
 ### Sign Bit (MSB)
 
@@ -324,15 +323,38 @@ The range of values rule states that for an n-bit number:
 - Positive range: 0 to (2^{n-1} - 1)
 - Negative range: (-2^{n-1}) to (-1)
 
-To get the twos complement representation of any sequence of binaries, the rule is (binary number system representation of binary value with fixed width and MSB) - (number of distinct bit patterns for fixed width).
+To get the twos complement representation of any sequence of binaries, the rule is, if the MSB is negative: (min signed integer value for fixed width) + (convert binary value with fixed width to unsigned integer excluding the MSB). If the MSB is positive: the unsigned value of the remaining bits excluding the MSB will return the signed integer fixed width decimal.
 
 For example, in a 16-bit two’s complement system:
 
 - Positive numbers: 0 to 32767
 - Negative numbers: -32768 to -1
 
-Using the twos complement system, if we have 0b1111000100000010, we know this has 16 bits in it (fixed bit rule). We know that the MSB is 1 so this will be a negative number (most significant bit rule) So to change this to a negative number, we run 61698 - 65536 (range of values rule). i.e. (binary number system representation of 0b1111000100000010) - (number of distinct bit patterns for 16 bits). So applying the 3 main rules of twos complement to 0xF102 , we get a negative integer of -3838 which is within the range of negative numbers for a 16 bit number as you see above. Knowing this is going to level you up a lot. Note that outside of the twos complement system, none of these rules apply to the binary number system as that systems only concern is converting binary symbol components to positive integers. All the above rules are only applied in the twos complement system. For example, the fixed width rule, 8 bit, 16 bit, etc is only a constraint in the twos complement system. So seeing 9 bits as returned by cast is actually very normal. It is just not allowed in the twos complement system. Binary values dont have normal have a fixed witdth unless they are enforced in a system.
+Using the twos complement system, if we have 0b1111000100000010, we know this has 16 bits in it (fixed bit rule). We know that the MSB is 1 so this will be a negative number (most significant bit rule) So to change this to a negative number , convert the binary representation to a positive integer ignoring the MSB i.e. 0b111000100000010 (28930), then run - 32768 + 28930 (range of values rule). i.e. (min signed integer value for 16 bits) + (convert binary value with 16 bits to unsigned integer excluding the MSB). So applying the 3 main rules of twos complement to 0xF102 , we get a negative integer of -3838 which is within the range of negative numbers for a 16 bit number as you see above. Knowing this is going to level you up a lot. Note that outside of the twos complement system, none of these rules apply to the binary number system as that systems only concern is converting binary symbol components to positive integers. All the above rules are only applied in the twos complement system. For example, the fixed width rule, 8 bit, 16 bit, etc is only a constraint in the twos complement system. So seeing 9 bits as returned by cast is actually very normal. It is just not allowed in the twos complement system. Binary values dont have normal have a fixed witdth unless they are enforced in a system.
 
+### Unsigned integers
+
+As discussed on line 265, the twos complement system is used to represent both positive and negative integers i.e. signed integers (int8, int16, int32, etc). The binary number system is the basis on which unsigned integers are built with the same extra rules . Signed integers are based on the twos complement system. For unsigned integers, the extra rules are similar to the signed integer rules but with nuances you must be aware of i.e. the fixed width rule is exactly the same as in the twos complement system BUT there is no MSB rule with unsigned integers. The reason for this is because unsigned integers only represent positive values. As a result, there is no need to reserve the MSB to store the sign. This means that extra bit can be used to increase the positive range of unsigned values of the same fixed width. 
+
+What this means is that the range of values rule for unsigned integers is as follows:
+
+The range of values rule states that for an n-bit number:
+
+- Positive range: 0 to (2^{n} - 1)
+
+What you will notice is that the formula is 2^n and not 2^{n-1} like it was in the twos complement system because we no longer have to reserve the MSB to store the sign. What this means is that the max positive value that be represented by a u32 will always be > than the max positive value that can be represented by an i32 simply based on this rule.
+
+u32::MAX  == 2^{32} - 1 == 4294967295
+i32::MAX  == 2^{32-1} -1 == 2147483647
+
+To get the unsigned representation of any sequence of binaries, as mentioned on lines 206 and 244, we simply use the binary number system.
+
+For example, in a 16-bit fixed width unsigned binary system:
+
+- Positive numbers: 0 to 65535
+
+Using the binary number system including the MSB, 0b1111000100000010 becomes 1 * 2^15 + 1 * 2^14 + 1 * 2^13 + 1 * 2^12 + 0 * 2^11 + 0 * 2^10 + 0 * 2^9 + 1 * 2^8
+  + 0 * 2^7 + 0 * 2^6 + 0 * 2^5 + 0 * 2^4 + 0 * 2^3 + 0 * 2^2 + 1 * 2^1 + 0 * 2^0 = 32768 + 16384 + 8192 + 4096 + 256 + 2 = 61698. This is the main difference between a signed and an unsigned integer.
 
 Lets go back to SHR now. With the knowledge we just gained, it will be much easier to understand SHR. As explained above, SHR, just deletes a number of bits for us by 'moving it to the right'. Lets continue with our 0b100000010 example. Note that the 0b just signifies that this is a binary.
 
@@ -373,7 +395,7 @@ cast --to-base 11579208923731619542357098500868790785292970229871962557599420940
 
 # evm.codes PLAYGROUND
 
-We can check that our math here is sound by practicing it on evm.codes playground. Omn their site, they have a playground you can use to test whatever you wan to do and run through what happens in the stack and learn from what you are doing. So go into the playground and type the following:
+We can check that our math here is sound by practicing it on evm.codes playground. On their site, they have a playground you can use to test whatever you wan to do and run through what happens in the stack and learn from what you are doing. So go into the playground and type the following:
 
 ```h
 PUSH2 0x0102
